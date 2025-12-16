@@ -10,7 +10,7 @@ class Task(models.Model):
 
     STATUS_CHOICES = (
         ('pending', 'Pending'),
-        ('in-progress', 'In Progress'),
+        ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
     )
 
@@ -22,5 +22,5 @@ class Task(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def str(self):
+    def __str__(self):
         return self.title

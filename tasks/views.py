@@ -1,49 +1,35 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend  # type:ignore
+from rest_framework.filters import OrderingFilter, SearchFilter
+
 from .models import Task
 from .serializers import TaskSerializer
 
-# List all tasks / Create a task (User-specific)
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def task_list(request):
-    if request.method == 'GET':
-        # Only return tasks belonging to the logged-in user
-        tasks = Task.objects.filter(owner=request.user)
-        serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
+# List & Create tasks (user-specific)
+class TaskListCreateView(generics.ListCreateAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
 
-    elif request.method == 'POST':
-        serializer = TaskSerializer(data=request.data)
-        if serializer.is_valid():
-            # Automatically set the owner to the logged-in user
-            serializer.save(owner=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_fields = ['status', 'priority']      # Filtering
+    ordering_fields = ['due_date', 'created_at']  # Ordering
+    search_fields = ['title']                      # Searching
 
-# Retrieve, Update, Delete a single task (User-specific)
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def task_detail(request, pk):
-    try:
-        # Only allow the owner to access their task
-        task = Task.objects.get(pk=pk, owner=request.user)
-    except Task.DoesNotExist:
-        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+    def get_queryset(self):
+        # Only return tasks owned by the logged-in user
+        return Task.objects.filter(owner=self.request.user)
 
-    if request.method == 'GET':
-        serializer = TaskSerializer(task)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        # Automatically assign the task owner
+        serializer.save(owner=self.request.user)
 
-    elif request.method in ['PUT', 'PATCH']:
-        serializer = TaskSerializer(task, data=request.data, partial=(request.method=='PATCH'))
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        task.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+# Retrieve, Update, Delete a single task (user-specific)
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Ensure only the owner can access their tasks
+        return Task.objects.filter(owner=self.request.user)
