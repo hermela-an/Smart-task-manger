@@ -1,3 +1,4 @@
+from .pagination import TaskPagination
 from datetime import date, timedelta
 
 from rest_framework import generics
@@ -18,6 +19,7 @@ from .serializers import TaskSerializer
 class TaskListCreateView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = TaskPagination  
 
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ['status', 'priority']
@@ -29,7 +31,6 @@ class TaskListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
 
 # --------------------------------------------------
 # Retrieve, Update, Delete a Single Task
