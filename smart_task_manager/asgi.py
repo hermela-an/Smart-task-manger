@@ -1,5 +1,5 @@
 """
-ASGI config for backend project.
+ASGI config for smart_task_manager project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

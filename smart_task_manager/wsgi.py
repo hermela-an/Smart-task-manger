@@ -1,5 +1,5 @@
 """
-WSGI config for backend project.
+WSGI config for smart_task_manager project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
