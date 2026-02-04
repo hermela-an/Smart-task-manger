@@ -44,9 +44,12 @@ INSTALLED_APPS = [
       'users',
       'django_filters',
       'tasks',
+      'corsheaders',
 ]
 
 MIDDLEWARE = [
+     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
       'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -159,3 +162,5 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your_email@gmail.com'        # Replace with your email
 EMAIL_HOST_PASSWORD = 'your_app_password'      # Use Gmail App Password, NOT normal password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CORS_ALLOW_ALL_ORIGINS = True
